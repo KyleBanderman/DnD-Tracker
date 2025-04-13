@@ -1,11 +1,45 @@
 import tkinter as tk
 from tkinter import ttk
+from pathlib import Path
+import os
 
 def save_data (text_input):
     print(text_input)
 
 def open_new_log():
-    print("new log")
+    log_popout = tk.Toplevel(root)
+    log_popout.overrideredirect(True)
+    log_popout.geometry("300x300-50+50")
+
+    popout_frame = tk.Frame(log_popout, width=300, height=300)
+    popout_frame.config(bg="#343c45")
+    popout_frame.grid(row = 0, column = 0, sticky = "NEWS")
+    popout_frame.grid_rowconfigure(0, weight = 1)
+    popout_frame.grid_columnconfigure(0, weight = 1)
+    
+    file_path = os.path.join("data", "campaigns", "campaigns.txt")
+    CAMPAIGNS = create_list_from_txt(file_path)
+
+    campaign_var = tk.StringVar(popout_frame)
+    campaign_var.set("Select a Campaign")
+    campaign_option = tk.OptionMenu(popout_frame, campaign_var, *CAMPAIGNS)
+    campaign_option.config(width=20, height=3, justify="center")
+    campaign_option.grid(row = 0, column = 0, padx=(70,70), pady=(10,10))
+
+    date_entry = tk.Entry(log_popout, justify="center", width=20)
+    date_entry.grid(row = 1, column = 0, padx=(70,70), pady=(0,10))
+
+def create_list_from_txt(file_path):
+    output_list = []
+    try:
+        with open(file_path, 'r') as f:
+            output_list = f.readlines()
+        return output_list
+    except FileNotFoundError:
+        return "File not found"
+    except Exception as e:
+        return f"An error occured: {e}"
+
 
 def load_log(log):
     print("actually load the log")
