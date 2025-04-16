@@ -6,6 +6,22 @@ import os
 def save_data (text_input):
     print(text_input)
 
+def create_new_log(root, option, date, entry):
+    date_file_path = os.path.join("data", "combat_logs", date, entry + ".txt")
+    try:
+        with open(date_file_path, 'x') as f:
+            pass
+    except FileExistsError:
+        return "File already exists"
+    try:
+        with open(date_file_path, 'a') as f:
+            f.write(option)
+            f.write(date)
+            f.write(entry)
+    except Exception as e:
+        print(f"Error: {e}")
+    root.destroy()
+
 def open_new_log():
     log_popout = tk.Toplevel(root)
     log_popout.overrideredirect(True)
@@ -17,8 +33,8 @@ def open_new_log():
     popout_frame.grid_rowconfigure(0, weight = 1)
     popout_frame.grid_columnconfigure(0, weight = 1)
     
-    file_path = os.path.join("data", "campaigns", "campaigns.txt")
-    CAMPAIGNS = create_list_from_txt(file_path)
+    campaign_file_path = os.path.join("data", "campaigns", "campaigns.txt")
+    CAMPAIGNS = create_list_from_txt(campaign_file_path)
 
     campaign_var = tk.StringVar(popout_frame)
     campaign_var.set("Select a Campaign")
@@ -26,8 +42,20 @@ def open_new_log():
     campaign_option.config(width=20, height=3, justify="center")
     campaign_option.grid(row = 0, column = 0, padx=(70,70), pady=(10,10))
 
-    date_entry = tk.Entry(log_popout, justify="center", width=20)
-    date_entry.grid(row = 1, column = 0, padx=(70,70), pady=(0,10))
+    date_file_path = os.path.join("data", "combat_logs")
+    DATE_OPTIONS = os.listdir(date_file_path)
+    
+    date_var = tk.StringVar(popout_frame)
+    date_var.set("Select a Date")
+    date_option = tk.OptionMenu(popout_frame, date_var, *DATE_OPTIONS)
+    date_option.config(width=20, height=3, justify="center")
+    date_option.grid(row = 1, column = 0, padx=(70,70), pady=(10,10))
+
+    date_entry = tk.Entry(popout_frame, justify="center", width=20)
+    date_entry.grid(row = 2, column = 0, padx=(70,70), pady=(0,0))
+
+    submit_button = tk.Button(popout_frame, command = lambda: create_new_log(log_popout, campaign_var.get(), date_var.get(), date_entry.get()), width=10, height=2, text="Submit", font=("Times New Roman", 20))
+    submit_button.grid(row = 3, column = 0, padx=(70,70), pady=(0,10))
 
 def create_list_from_txt(file_path):
     output_list = []
@@ -77,7 +105,7 @@ log_frame.grid(row = 1, column = 1, sticky="NEWS")
 log_frame.grid_rowconfigure(0, weight=1)
 log_frame.grid_columnconfigure(0, weight=1)
 
-text_box = tk.Text(text_frame, width=50, height=30)
+text_box = tk.Text(text_frame, width=40, height=20, font=("Times New Roman", 15))
 text_box.config(bg="orange")
 text_box.grid(row = 4, column = 0, padx=(25,25), pady=(10,10))
 
