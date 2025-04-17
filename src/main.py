@@ -1,25 +1,22 @@
 import tkinter as tk
 from tkinter import ttk
-from pathlib import Path
 import os
 
-def save_data (text_input):
-    print(text_input)
+active_log = ""
+
+def save_data (active_log, text_input):
+    print(active_log, text_input)
 
 def create_new_log(root, option, date, entry):
-    date_file_path = os.path.join("data", "combat_logs", date, entry + ".txt")
+    date_file_path = os.path.join("data", "combat_logs", date, option, entry + ".txt")
     try:
         with open(date_file_path, 'x') as f:
             pass
     except FileExistsError:
         return "File already exists"
-    try:
-        with open(date_file_path, 'a') as f:
-            f.write(option)
-            f.write(date)
-            f.write(entry)
-    except Exception as e:
-        print(f"Error: {e}")
+    global active_log
+    active_log = date_file_path
+    load_log(active_log)
     root.destroy()
 
 def open_new_log():
@@ -40,37 +37,53 @@ def open_new_log():
     campaign_var.set("Select a Campaign")
     campaign_option = tk.OptionMenu(popout_frame, campaign_var, *CAMPAIGNS)
     campaign_option.config(width=20, height=3, justify="center")
-    campaign_option.grid(row = 0, column = 0, padx=(70,70), pady=(10,10))
+    campaign_option.grid(row = 0, column = 0, padx=(70,70), pady=(10,0))
 
     date_file_path = os.path.join("data", "combat_logs")
     DATE_OPTIONS = os.listdir(date_file_path)
     
     date_var = tk.StringVar(popout_frame)
-    date_var.set("Select a Date")
+    date_var.set("Select a Month")
     date_option = tk.OptionMenu(popout_frame, date_var, *DATE_OPTIONS)
     date_option.config(width=20, height=3, justify="center")
-    date_option.grid(row = 1, column = 0, padx=(70,70), pady=(10,10))
+    date_option.grid(row = 1, column = 0, padx=(70,70), pady=(10,0))
+
+    date_label = tk.Label(popout_frame, justify="center", text="Enter the Date:")
+    date_label.grid(row = 2, column = 0, padx=(70,70), pady=(10,0))
 
     date_entry = tk.Entry(popout_frame, justify="center", width=20)
-    date_entry.grid(row = 2, column = 0, padx=(70,70), pady=(0,0))
+    date_entry.grid(row = 3, column = 0, padx=(70,70), pady=(10,0))
 
     submit_button = tk.Button(popout_frame, command = lambda: create_new_log(log_popout, campaign_var.get(), date_var.get(), date_entry.get()), width=10, height=2, text="Submit", font=("Times New Roman", 20))
-    submit_button.grid(row = 3, column = 0, padx=(70,70), pady=(0,10))
+    submit_button.grid(row = 4, column = 0, padx=(70,70), pady=(10,10))
 
 def create_list_from_txt(file_path):
     output_list = []
     try:
         with open(file_path, 'r') as f:
-            output_list = f.readlines()
+            output_list = [line.rstrip('\n') for line in f.readlines()]
         return output_list
     except FileNotFoundError:
         return "File not found"
     except Exception as e:
         return f"An error occured: {e}"
 
-
 def load_log(log):
     print("actually load the log")
+
+def display_in_columns(canvas, data, num_columns=3):
+    if not data:
+        return
+
+    text_x = canvas.config("width") // 2
+    max_len = max(len(item) for item in data)
+    terminal_width = 80
+    col_width = max(max_len + 2, terminal_width // num_columns)
+
+    for i in range(0, len(data), num_columns):
+        row = data[i:i + num_columns]
+        formatted_row = "".join(item.ljust(col_width) for item in row)
+        print(formatted_row)
 
 root = tk.Tk()
 root.title("Runaria")
@@ -118,12 +131,11 @@ damage_label.grid(row = 2, column = 0, padx=(25,25))
 target_label = tk.Label(text_frame, text="Wrap {(  )} for target", font = ("Times New Roman", 20))
 target_label.grid(row = 3, column = 0, padx=(25,25))
 
-save_button = tk.Button(text_frame, command =  lambda: save_data(text_box.get("1.0", "end")), width=30, height=3, text="Save", font=("Times New Roman", 20))
+save_button = tk.Button(text_frame, command =  lambda: save_data(active_log, text_box.get("1.0", "end")), width=30, height=3, text="Save", font=("Times New Roman", 20))
 save_button.grid(row = 5, column = 0, padx=(25,25))
 
 log_canvas = tk.Canvas(log_frame, width=500, height=300)
-log_canvas.config(bg="green")
-log_canvas.grid(row = 0, column = 0, padx=(25,25), pady=(25,25))
+log_canvas.grid(row = 0, column = 0, padx=(25,25), pady=(25,25), sticky = "NEWS")
 
 new_log_button = tk.Button(button_frame, command = lambda: open_new_log(), width = 5, height = 2, text="+", font=("Times New Roman", 20, "bold"))
 new_log_button.grid(row = 0, column = 1)
